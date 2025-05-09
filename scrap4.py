@@ -42,56 +42,56 @@ option.add_argument("start-maximized")
 ############  Specify browser driver ######################
 driver = webdriver.Chrome(options=option)
 
+# Try different selectors to find the manage button
+button_selectors_manage = [
+    (By.ID, 'didomi-notice-learn-more-button'),
+    (By.CSS_SELECTOR, '#didomi-notice-learn-more-button'),
+    (By.CSS_SELECTOR, 'button[aria-label="Manage"]')
+
+]
+manage_button = None
+
+# Try different selectors to find the disagree button
+button_selectors_disagree = [
+            (By.ID, 'btn-toggle-disagree'),
+            (By.CSS_SELECTOR, '#btn-toggle-disagree'),
+            (By.CSS_SELECTOR, 'button[aria-label="Disagree to all: Disagree to our data processing and close"]')
+        ]
+
+disagree_button = None
+
+# Small function to handle button clicks on cookie popup
+def manage_cookies(selectors, button_name):
+    # Wait for the cookie consent button to be clickable and then click it
+    wait = WebDriverWait(driver, 7)
+    button_name = None
+    for selector_type, selector_value in selectors:
+        try:
+            button_name = wait.until(EC.element_to_be_clickable((selector_type, selector_value)))
+            # If button is found, exit the loop
+            break
+        except:
+            # If button is not found with current selector, move on to next one
+            pass
+        if button_name:
+            button_name.click() 
+
 def method_3():
     try:
         # Get page HTML through request parse content using BS4
         driver.get(model_url)
 
-        # Wait for the cookie consent button to be clickable and then click it
-        wait = WebDriverWait(driver, 7)
-        
-        # Try different selectors to find the manage button
-        button_selectors_manage = [
-            (By.ID, 'didomi-notice-learn-more-button'),
-            (By.CSS_SELECTOR, '#didomi-notice-learn-more-button'),
-            (By.CSS_SELECTOR, 'button[aria-label="Manage"]')
-
-        ]
-        manage_button = None
-        for selector_type, selector_value in button_selectors_manage:
-            try:
-                manage_button = wait.until(
-                    EC.element_to_be_clickable((selector_type, selector_value))
-                )
-                break  # If button is found, exit the loop
-            except:
-                pass  # If button not found with this selector, try the next one
-        if manage_button:
-            manage_button.click()
-            print("On the managing options page")
-
+        # Call function to manage cookies
+        manage_cookies(button_selectors_manage, manage_button)
+        # Wait for page load
         sleep(1)
-        # Now need to Reject all the cookies
-        button_selectors_disagree = [
-            (By.ID, 'btn-toggle-disagree'),
-            (By.CSS_SELECTOR, '#btn-toggle-disagree'),
-            (By.CSS_SELECTOR, 'button[aria-label="Disagree to all: Disagree to our data processing and close"]')
-        ]
-        disagree_button = None
-        for selector_type, selector_value in button_selectors_disagree:
-            try:
-                disagree_button = wait.until(
-                    EC.element_to_be_clickable((selector_type, selector_value))
-                )
-                break # If button is found, exit loop
-            except:
-                pass # If button not found with this selector, try next one
-        if disagree_button:
-            disagree_button.click()
-            print("We have disagreed to all the options!!")
+        manage_cookies(button_selectors_disagree, disagree_button)
+        
+        print("We have disagreed to all the options!!")
 
-        sleep(3)
-
+        sleep(2)
+        # Now get the listing information
+        wait = WebDriverWait(driver, 3)
         results_container = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'results')))
         listings = results_container.find_elements(By.CSS_SELECTOR, '.stock-summary__details')
         print(listings)
@@ -102,5 +102,6 @@ def method_3():
     finally:
         driver.quit()
 
+# Call the function to get the listing information
 method_3()
 overview_model_scraped_data = []
