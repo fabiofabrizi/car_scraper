@@ -6,6 +6,8 @@ This is building on car_scraper_2.py by attempting to use a OO methodology to sc
 import csv
 import requests
 from bs4 import BeautifulSoup
+# to create a folder to store saved csv files
+import os
 
 class CarZoneScraper:
     def __init__(self, base_url='https://www.carzone.ie/', base_used_url='https://www.carzone.ie/used-cars'):
@@ -56,15 +58,20 @@ class CarZoneScraper:
             self._scrape_manufacturer_models(url_data)
 
     def save_to_csv(self, data_list, filename):
+        assets_folder = 'assets'
         if not data_list:
-            print(f"No data to save to {filename}.csv")
+            print(f"No data to save to {assets_folder}/{filename}.csv")
             return
         keys = data_list[0].keys()
-        with open(filename + '.csv', 'w', newline='', encoding='utf-8') as output_file:
+        # Check whether the 'assets folder' exists - if not, create it.
+        if not os.path.exists(assets_folder):
+            os.makedirs(assets_folder)
+        filepath = os.path.join(assets_folder, filename + '.csv')
+        with open(filepath, 'w', newline='', encoding='utf-8') as output_file:
             dict_writer = csv.DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(data_list)
-        print(f"Data saved to {filename}.csv")
+        print(f"Data saved to {assets_folder}/{filename}.csv")
 
 if __name__ == "__main__":
     scraper = CarZoneScraper()
